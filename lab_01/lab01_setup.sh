@@ -91,15 +91,15 @@ VM01_PUBLIC_IP=$(az vm list-ip-addresses \
  --query "[].virtualMachine.network.publicIpAddresses[0].ipAddress" \
  -o tsv)
 
+sudo apt update -y
+sudo apt install -y sshpass
+
 # Ensure VM 01 is ready for SSH
 echo "Waiting for VM to be ready..."
 while ! sshpass -p "$PASSWORD" ssh -o StrictHostKeyChecking=no -o ConnectTimeout=5 "$ADMIN_USERNAME@$VM01_PUBLIC_IP" "echo 'VM is ready'" &>/dev/null; do
   sleep 10
 done
 echo "VM is ready for SSH connections."
-
-sudo apt update -y
-sudo apt install -y sshpass
 
 sshpass -p "$PASSWORD" scp "$PRIVATE_KEY_PATH" $ADMIN_USERNAME@$VM01_PUBLIC_IP:~/.ssh/key_to_the_boss_vm
 sshpass -p "$PASSWORD" ssh -o StrictHostKeyChecking=no "$ADMIN_USERNAME@$VM01_PUBLIC_IP" << EOF
