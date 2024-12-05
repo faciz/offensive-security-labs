@@ -1,3 +1,11 @@
+# Overview
+
+"Be The Hacker" is a series of hands-on labs designed to provide you with insight into how an attacker could exploit improperly secured environments. 
+
+Through a series of scenarios, this lab series aims to teach the common mistakes made during cloud resource setup and demonstrate how they can be exploited by a bad actor.
+
+By simulating real-world attacks on vulnerable systems, you'll gain practical experience in securing your own cloud infrastructure and understanding the importance of strong security practices.
+
 # Lab 01: Compromised VM
 
 ## Scenario
