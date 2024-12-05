@@ -1,9 +1,5 @@
 # Lab 01: Compromised VM
 
-## Scenario
-
-You are Mr.Ton, first name Plank, and you aspire to create a popular fast food restaurant. You found the public ip for a machine in your  rival's restaurant. Let's see what you can do with it.
-
 ## Step 1: Attempt to SSH Into the VM
 
 Let’s start by trying to connect to the VM directly:
@@ -22,7 +18,7 @@ If it prompts for a password, this indicates that the VM is not using a secure a
    - If the machine is hosted on Azure, the default username is often `azureuser`, so let's try using that username first.
 
 2. **Brute Force the Password**:  
-   We can use a tool like `hydra` to perform a brute-force attack. We will need to provide a username and a list of passwords to try against. Let's try the 200 most common passwords of 2023 from [SecLists](https://github.com/danielmiessler/SecLists/blob/master/Passwords/2023-200_most_used_passwords.txt):
+   Tools like `hydra`, `ncrack`, and `medua` can be used for brute-forcing logins. Let's use `hydra` to perform our attack. We will need to provide a username and a list of passwords to try against. Let's try the 200 most common passwords of 2023 from [SecLists](https://github.com/danielmiessler/SecLists/blob/master/Passwords/2023-200_most_used_passwords.txt):
 
    ```bash
    hydra -l azureuser -P /path/to/common_passwords.txt ssh://<Public_IP>
@@ -59,7 +55,7 @@ You’ll likely see an internal IP in the 10.0.0.x range (common for Azure VNets
 
 ### 4.2: Discover Other Devices on the Network
 
-We’ll ping all devices in the 10.0.0.x range to identify active hosts. We can use `fping` to send bulk ICMP echo probes (pings).
+We’ll ping all devices in the 10.0.0.x range to identify active hosts. We can use `fping` or `nmap` to send bulk ICMP echo probes (pings).
 
 ```bash
 fping -g 10.0.0.1 10.0.0.254
@@ -70,9 +66,18 @@ fping -g 10.0.0.1 10.0.0.254
 **-a** Shows only reachable hosts.  
 **-q** Runs quietly (suppresses output except results).  
 
+or
+
+```bash
+nmap -sS 10.0.0.1-254
+```
+
+>[!NOTE]
+**-sS:** Performs a stealthy SYN scan to detect open ports.
+
 ### 4.3: Filter Active Devices
 
-Use the ARP cache to find devices that responded:
+The tools above will output the devices that responsed, but if you want to verify, use the ARP cache to find devices that responded:
 
 ```bash
 arp -a | grep 10.0.0. | grep ether
@@ -99,13 +104,12 @@ ssh azureuser@<Internal_IP>
 
 Do you see `Permission denied (publickey)`? Looks like they tried to beef up their security by using SSH keys instead of a password. But since we're already inside the compromised vm, let’s check for an SSH private key.
 
-Navigate to the .ssh directory:
+Navigate to the .ssh directory and look for a private key file, such as id_rsa.pem.:
 
 ```bash
 cd ~/.ssh
+ls
 ```
-
-Look for a private key file, such as id_rsa.pem.
 
 ### 5.3: Use the Private Key for SSH
 
