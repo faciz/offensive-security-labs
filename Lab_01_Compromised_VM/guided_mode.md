@@ -33,7 +33,7 @@ If it prompts for a password, this indicates that the VM is not using a secure a
 
 Now, use the cracked credentials to SSH into the VM:
 
-```
+```bash
 ssh azureuser@<Public_IP>
 ```
 
