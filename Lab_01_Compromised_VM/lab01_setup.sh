@@ -41,88 +41,92 @@ if [ ! -f "$PRIVATE_KEY_PATH" ]; then
   ssh-keygen -t rsa -b 2048 -f "$PRIVATE_KEY_PATH" -q -N ""
 fi
 
-# Step 1: Create Resource Group
-az group create --name $RESOURCE_GROUP --location $LOCATION &> /dev/null
+echo "Creating resources..."
+{
+  # Step 1: Create Resource Group
+  az group create --name $RESOURCE_GROUP --location $LOCATION
 
-# Step 2: Create Virtual Network and Subnets
-az network vnet create \
- --resource-group $RESOURCE_GROUP \
- --name $VNET_NAME \
- --address-prefix 10.0.0.0/16 \
- --subnet-name $SUBNET_NAME \
- --subnet-prefix 10.0.0.0/24 &> /dev/null
+  # Step 2: Create Virtual Network and Subnets
+  az network vnet create \
+   --resource-group $RESOURCE_GROUP \
+   --name $VNET_NAME \
+   --address-prefix 10.0.0.0/16 \
+   --subnet-name $SUBNET_NAME \
+   --subnet-prefix 10.0.0.0/24
 
-# Step 3: Create NSG and Allow SSH
-az network nsg create \
- --resource-group $RESOURCE_GROUP \
- --name $NSG_NAME &> /dev/null
+  # Step 3: Create NSG and Allow SSH
+  az network nsg create \
+   --resource-group $RESOURCE_GROUP \
+   --name $NSG_NAME
 
-az network nsg rule create \
- --resource-group $RESOURCE_GROUP \
- --nsg-name $NSG_NAME \
- --name Allow-SSH \
- --priority 1000 \
- --protocol Tcp \
- --direction Inbound \
- --source-address-prefixes '*' \
- --source-port-ranges '*' \
- --destination-address-prefixes '*' \
- --destination-port-ranges 22 \
- --access Allow &> /dev/null
+  az network nsg rule create \
+   --resource-group $RESOURCE_GROUP \
+   --nsg-name $NSG_NAME \
+   --name Allow-SSH \
+   --priority 1000 \
+   --protocol Tcp \
+   --direction Inbound \
+   --source-address-prefixes '*' \
+   --source-port-ranges '*' \
+   --destination-address-prefixes '*' \
+   --destination-port-ranges 22 \
+   --access Allow
 
-# Step 4: Associate NSG with Subnet
-az network vnet subnet update \
- --resource-group $RESOURCE_GROUP \
- --vnet-name $VNET_NAME \
- --name $SUBNET_NAME \
- --network-security-group $NSG_NAME &> /dev/null
+  # Step 4: Associate NSG with Subnet
+  az network vnet subnet update \
+   --resource-group $RESOURCE_GROUP \
+   --vnet-name $VNET_NAME \
+   --name $SUBNET_NAME \
+   --network-security-group $NSG_NAME
 
-# Step 5: Create Public VM (Compromised Target)
-az vm create \
- --resource-group $RESOURCE_GROUP \
- --name $PUBLIC_VM \
- --image Ubuntu2404 \
- --admin-username $ADMIN_USERNAME \
- --authentication-type password \
- --admin-password $PASSWORD \
- --vnet-name $VNET_NAME \
- --subnet $SUBNET_NAME \
- --nsg $NSG_NAME \
- --public-ip-sku Standard \
- --size $VM_SIZE &> /dev/null
+  # Step 5: Create Public VM (Compromised Target)
+  az vm create \
+   --resource-group $RESOURCE_GROUP \
+   --name $PUBLIC_VM \
+   --image Ubuntu2404 \
+   --admin-username $ADMIN_USERNAME \
+   --authentication-type password \
+   --admin-password $PASSWORD \
+   --vnet-name $VNET_NAME \
+   --subnet $SUBNET_NAME \
+   --nsg $NSG_NAME \
+   --public-ip-sku Standard \
+   --size $VM_SIZE
 
-# Step 6: Create Private VM (Internal Target)
-az vm create \
- --resource-group $RESOURCE_GROUP \
- --name $PRIVATE_VM \
- --image Ubuntu2404 \
- --admin-username $ADMIN_USERNAME \
- --authentication-type ssh \
- --ssh-key-values "$PUBLIC_KEY_PATH" \
- --vnet-name $VNET_NAME \
- --subnet $SUBNET_NAME \
- --public-ip-address "" \
- --private-ip-address "10.0.0.99" \
- --size $VM_SIZE &> /dev/null
+  # Step 6: Create Private VM (Internal Target)
+  az vm create \
+   --resource-group $RESOURCE_GROUP \
+   --name $PRIVATE_VM \
+   --image Ubuntu2404 \
+   --admin-username $ADMIN_USERNAME \
+   --authentication-type ssh \
+   --ssh-key-values "$PUBLIC_KEY_PATH" \
+   --vnet-name $VNET_NAME \
+   --subnet $SUBNET_NAME \
+   --public-ip-address "" \
+   --private-ip-address "10.0.0.99" \
+   --size $VM_SIZE
+} &> /dev/null
+echo "Resources created."
 
  # Step 7: Copy things to the VMs
 PUBLIC_VM_IP=$(az vm list-ip-addresses \
  --name $PUBLIC_VM \
  --resource-group $RESOURCE_GROUP \
  --query "[].virtualMachine.network.publicIpAddresses[0].ipAddress" \
- -o tsv) &> /dev/null
+ -o tsv)
 
 if ! command -v sshpass &> /dev/null; then
   echo "sshpass is not installed. Installing..."
-  sudo apt update && sudo apt install -y sshpass
+  (sudo apt update && sudo apt install -y sshpass) &> /dev/null
 fi
 
 # Ensure VM 01 is ready for SSH
 echo "Waiting for VM to be ready..."
-while ! sshpass -p "$PASSWORD" ssh -o StrictHostKeyChecking=no -o ConnectTimeout=5 "$ADMIN_USERNAME@$PUBLIC_VM_IP" "echo 'VM is ready'" &>/dev/null; do
+while ! sshpass -p "$PASSWORD" ssh -o StrictHostKeyChecking=no -o ConnectTimeout=5 "$ADMIN_USERNAME@$PUBLIC_VM_IP" "echo 'testing'" &>/dev/null; do
   sleep 10
 done
-echo "VM is ready for SSH connections."
+echo "VM is ready."
 
 sshpass -p "$PASSWORD" scp "$PRIVATE_KEY_PATH" $ADMIN_USERNAME@$PUBLIC_VM_IP:~/.ssh/key_to_the_boss_vm &> /dev/null
 sshpass -p "$PASSWORD" ssh -o StrictHostKeyChecking=no "$ADMIN_USERNAME@$PUBLIC_VM_IP" &> /dev/null << EOF
