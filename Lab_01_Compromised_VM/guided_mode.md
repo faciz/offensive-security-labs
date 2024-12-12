@@ -1,14 +1,26 @@
 # Lab 01: Compromised VM
 
-## Step 1: Attempt to SSH Into the VM
+## Step 1: Connecting to the VM
 
-Let’s start by trying to connect to the VM directly:
+1. **Check for open ports**:
+   We can use nmap to scan for any open ports on our target IP address.
 
-```bash
-ssh azureuser@<Public_IP>
-```
+   ```bash
+   nmap -sS -Pn <Public_IP>
+   ```
 
-If it prompts for a password, this indicates that the VM is not using a secure authentication method like SSH keys. Let's try to crack the password.
+    >[!NOTE]
+    **-sS:** Performs a stealthy SYN scan to detect open ports.  
+    **-Pn:** Skip ping sweep
+
+2. **Attempt SSH**:  
+    We see that port 22 is open, so Let’s start by trying to ssh into the VM:
+
+    ```bash
+    ssh azureuser@<Public_IP>
+    ```
+
+    If it prompts for a password, this indicates that the VM is not using a     secure authentication method like SSH keys. Let's try to crack the  password.
 
 ## Step 2: Crack the Password
 

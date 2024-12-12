@@ -29,7 +29,6 @@ PASSWORD=$(shuf "$PASSWORD_FILE" | while read -r password; do
     break
   fi
 done)
-echo "Selected password: $PASSWORD"
 
 
 # SSH Key
