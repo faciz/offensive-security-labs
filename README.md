@@ -27,4 +27,4 @@ Go find the secret. Hopefully the powerpoint taught you something. Good luck.
 
 ### Guided Mode
 
-Follow these [instructions](./Lab%2001:%20Compromised%20VM/guided_mode.md).
+Follow these [instructions](./Lab_01_Compromised_VM/guided_mode.md).
