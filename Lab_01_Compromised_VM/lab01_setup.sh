@@ -209,9 +209,56 @@ echo "
               -+==========+=                                                                        
                ..=*+====+-.                                                                         
                     .::.                  
-                              Congrats! You found it! "> ~/Krabs_Family_Secret.txt
-sudo chown root:root ~/Krabs_Family_Secret.txt
-sudo chmod 600 ~/Krabs_Family_Secret.txt
+                              Congrats! You found it! " > /tmp/secret_content.txt
+
+mkdir -p ~/KrustyKrab/{SecretFormula,EmployeeFiles,CustomerData,BusinessPlans}
+mkdir -p ~/KrustyKrab/SecretFormula/{BackupFormulas,TopSecretStuff}
+mkdir -p ~/KrustyKrab/CustomerData/RegularCustomers
+mkdir -p ~/KrustyKrab/EmployeeFiles/{SpongeBob,Squidward}
+
+mkdir -p ~/SpongeBobStuff/{JellyfishCatching,PersonalDiary,GaryPhotos}
+
+mkdir -p ~/SquidwardComplaints/{AboutSpongeBob,PhilosophicalThoughts}
+
+echo "💰 Today I made \$247.83 ar ar ar ar!" > ~/KrustyKrab/BusinessPlans/daily_earnings.txt
+echo "🦀 MONEY MONEY MONEY!" > ~/KrustyKrab/BusinessPlans/mr_krabs_notes.txt
+
+echo "Employee notes: Very... interesting worker" > ~/KrustyKrab/EmployeeFiles/SpongeBob/evaluation.txt
+echo "Performance: TOO enthusiastic" > ~/KrustyKrab/EmployeeFiles/SpongeBob/performance_review.doc
+echo "Employee notes: Constantly complaining" > ~/KrustyKrab/EmployeeFiles/Squidward/evaluation.txt
+echo "Performance: Adequate, but grumpy" > ~/KrustyKrab/EmployeeFiles/Squidward/performance_review.doc
+
+echo "I'M READY! I'M READY! Jellyfishing time!" > ~/SpongeBobStuff/JellyfishCatching/excitement_level.txt
+echo "Buzz buzz buzz! 🎣" > ~/SpongeBobStuff/JellyfishCatching/jellyfish_sounds.txt
+echo "Jellyfishing spots: Jellyfish Fields, Jellyfish Lagoon" > ~/SpongeBobStuff/JellyfishCatching/favorite_locations.txt
+
+echo "SpongeBob did something annoying again... *sigh*" > ~/SquidwardComplaints/AboutSpongeBob/daily_annoyance.txt
+echo "I need my clarinet... 🎵" > ~/SquidwardComplaints/AboutSpongeBob/stress_relief.txt
+
+echo "SECRET_KRABBY_PATTY_SAUCE=just_ketchup_and_mustard" > ~/KrustyKrab/SecretFormula/.fake_formula
+echo "SQUIDWARD_DIARY_PASSWORD=clarinet_lover" > ~/SquidwardComplaints/PhilosophicalThoughts/.private_thoughts
+
+touch ~/KrustyKrab/CustomerData/RegularCustomers/Tom_Kenny.txt
+touch ~/KrustyKrab/CustomerData/RegularCustomers/Nat_Peterson.txt
+touch ~/KrustyKrab/CustomerData/RegularCustomers/Fred_Rechid.txt
+echo "Barnacle Boy's secret identity revealed!" > ~/SpongeBobStuff/PersonalDiary/superhero_secrets.txt
+echo "Mermaid Man's phone number: 555-HERO" > ~/SpongeBobStuff/PersonalDiary/contact_list.txt
+echo "How to tie your shoes in 47 easy steps" > ~/SpongeBobStuff/PersonalDiary/life_skills.txt
+echo "The Dirty Bubble's weakness: soap" > ~/SpongeBobStuff/PersonalDiary/villain_weaknesses.txt
+
+echo "The secret ingredient is... *dramatic pause* ...LOVE! Just kidding, it's really..." > ~/KrustyKrab/SecretFormula/BackupFormulas/almost_the_real_one.txt
+echo "If Plankton is reading this: Nice try! The REAL formula is hidden somewhere else! Ar ar ar ar!" > ~/KrustyKrab/SecretFormula/TopSecretStuff/plankton_trap.txt
+echo "Dear Diary, today I almost told SpongeBob the secret formula but then I remembered: MONEY!" > ~/KrustyKrab/BusinessPlans/mr_krabs_diary.txt
+
+cp /tmp/secret_content.txt ~/KrustyKrab/SecretFormula/TopSecretStuff/.keep_away_from_plankton.txt
+sudo chown root:root ~/KrustyKrab/SecretFormula/TopSecretStuff/.keep_away_from_plankton.txt
+sudo chmod 600 ~/KrustyKrab/SecretFormula/TopSecretStuff/.keep_away_from_plankton.txt
+rm -f /tmp/secret_content.txt
+
+echo "Hi Mr.Krabs! Thank you for letting me use your computer again! I know I have my own, but I like to hide my secret jellyfishing spots on yours. Oh, and I hid the secret formula in a tricky place, so Plankton won't find it! See you tomorrow! - SpongeBob " > ~/note_from_spongebob.txt
+
+sudo apt update
+sudo apt install tree
 
 cat << EOS > /tmp/sudoers.new
 Defaults    env_reset
