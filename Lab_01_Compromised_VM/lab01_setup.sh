@@ -10,13 +10,28 @@ PRIVATE_VM="MrMoneyBagsVM"
 VM_SIZE="Standard_B1s"
 ADMIN_USERNAME="azureuser"
 
+# Check for dependencies
+if command -v shuf &> /dev/null; then
+    SHUF_CMD="shuf"
+elif command -v gshuf &> /dev/null; then
+    SHUF_CMD="gshuf"
+else
+    echo "Error: shuf command not found. Please install coreutils."
+    exit 1
+fi
+
+if ! command -v sshpass &> /dev/null; then
+  echo "Error: sshpass command not found. Please install sshpass."
+  exit 1
+fi
+
 # Prompt for Resource Group Name
 read -p "Enter the name of the resource group to create: " RESOURCE_GROUP
 
 # Choose VM password
 PASSWORD_FILE="common_passwords.txt"
 
-PASSWORD=$(shuf "$PASSWORD_FILE" | while read -r password; do
+PASSWORD=$($SHUF_CMD "$PASSWORD_FILE" | while read -r password; do
   count=0
   [[ ${#password} -ge 12 ]] || continue 
   [[ "$password" =~ [A-Z] ]] && ((count++))
@@ -40,7 +55,7 @@ if [ ! -f "$PRIVATE_KEY_PATH" ]; then
   ssh-keygen -t rsa -b 2048 -f "$PRIVATE_KEY_PATH" -q -N ""
 fi
 
-echo "Creating resources..."
+echo "Creating resources. This may take several minutes..."
 {
   # Step 1: Create Resource Group
   az group create --name $RESOURCE_GROUP --location $LOCATION
@@ -106,7 +121,13 @@ echo "Creating resources..."
    --private-ip-address "10.0.0.99" \
    --size $VM_SIZE
 } &> /dev/null
-echo "Resources created."
+
+if [ $? -eq 0 ]; then
+  echo "Resources created successfully."
+else
+  echo "Error: Failed to create resources. Please check your Azure credentials and subscription."
+  exit 1
+fi
 
  # Step 7: Copy things to the VMs
 PUBLIC_VM_IP=$(az vm list-ip-addresses \
@@ -114,11 +135,6 @@ PUBLIC_VM_IP=$(az vm list-ip-addresses \
  --resource-group $RESOURCE_GROUP \
  --query "[].virtualMachine.network.publicIpAddresses[0].ipAddress" \
  -o tsv)
-
-if ! command -v sshpass &> /dev/null; then
-  echo "sshpass is not installed. Installing..."
-  (sudo apt update && sudo apt install -y sshpass) &> /dev/null
-fi
 
 # Ensure VM 01 is ready for SSH
 echo "Waiting for VM to be ready..."
@@ -128,10 +144,10 @@ done
 echo "VM is ready."
 
 sshpass -p "$PASSWORD" scp "$PRIVATE_KEY_PATH" $ADMIN_USERNAME@$PUBLIC_VM_IP:~/.ssh/key_to_the_boss_vm &> /dev/null
-sshpass -p "$PASSWORD" ssh -o StrictHostKeyChecking=no "$ADMIN_USERNAME@$PUBLIC_VM_IP" &> /dev/null << EOF
+sshpass -p "$PASSWORD" ssh -o StrictHostKeyChecking=no "$ADMIN_USERNAME@$PUBLIC_VM_IP" &> /dev/null << EOF 
 chmod 600 ~/.ssh/key_to_the_boss_vm
 ssh -i ~/.ssh/key_to_the_boss_vm -o StrictHostKeyChecking=no $ADMIN_USERNAME@10.0.0.99 << 'EOL'
-echo "                                                                                                    
+echo "                                     
              _  __          _     _             ____       _   _                   
             | |/ /_ __ __ _| |__ | |__  _   _  |  _ \ __ _| |_| |_ _   _           
             |   /|  __/ _  |  _ \|  _ \| | | | | |_) / _  | __| __| | | |          
@@ -172,7 +188,7 @@ echo "
                           =-:...........-=....:::::::-+++++*+====*:.                                
                         -=:...........:=:...:::::-=+++++=--====+=.                                  
                       :=::...........=:...:::-=++++++-:::====++.                                    
-                    .+::..........-*=....::=++++*=:::::-====+:                                      
+                    .+::..........-*=....::=++++*=:::::-====+-.                                       
                   .=-:.........==-+....:-+++*+:::::::-====+-.                                       
                 .-=:.......:=-:.-:...:=+++=:::::::::====+-.                                         
               .:=:......:=-....:...:-+++-:::::::::-===+=.                                           
@@ -194,6 +210,18 @@ echo "
                ..=*+====+-.                                                                         
                     .::.                  
                               Congrats! You found it! "> ~/Krabs_Family_Secret.txt
+sudo chown root:root ~/Krabs_Family_Secret.txt
+sudo chmod 600 ~/Krabs_Family_Secret.txt
+
+cat << EOS > /tmp/sudoers.new
+Defaults    env_reset
+Defaults    mail_badpass
+Defaults    secure_path="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+
+root        ALL=(ALL:ALL) ALL
+azureuser   ALL=(ALL) NOPASSWD: /usr/bin/vim
+EOS
+sudo cp /tmp/sudoers.new /etc/sudoers
 EOL
 EOF
 

