@@ -6,7 +6,7 @@
 ## Step 1: Connecting to the VM
 
 1. **Check for open ports**:
-   We can use nmap to scan for any open ports on our target IP address.
+   You can use nmap to scan for any open ports on your target IP address.
 
    ```bash
    nmap -sS -Pn <Public_IP>
@@ -18,23 +18,23 @@
     > **-Pn:** Skip host discovery (ping). This treats the target as online and skips the initial ping test, which is useful when ICMP is blocked by firewalls.
 
 2. **Attempt SSH**:  
-    We see that port 22 is open. This is the default port for SSH, so let’s start by trying to SSH into the VM:
+    You should see that port 22 is open. This is the default port for SSH, so let’s start by trying to SSH into the VM:
 
     ```bash
     ssh <Public_IP>
     ```
 
-    If it prompts for a password, this indicates that the VM is not using a secure authentication method like SSH keys. Let's try to crack the password.
+    If it prompts for a password, this indicates that the VM is not using a secure authentication method like SSH keys. Try to crack the password.
 
 ## Step 2: Crack the Password
 
 1. **Check Hosting Information**:  
-   We can use a site like [hostingchecker.com](https://hostingchecker.com) to determine if the machine is hosted in the cloud.  
+   You can use a site like [hostingchecker.com](https://hostingchecker.com) to determine if the machine is hosted in the cloud.  
 
-   - If the machine is hosted on Azure, the default username is often `azureuser`, so let's try using that username first.
+   - If the machine is hosted on Azure, the default username is often `azureuser`, so try using that username first.
 
 2. **Brute Force the Password**:  
-   Tools like `hydra`, `ncrack`, and `medusa` can be used for brute-forcing logins. Let's use `hydra` to perform our attack. We will need to provide a username and a list of passwords to try against. Let's try the 200 most [common passwords](./common_passwords.txt) of 2023.
+   Tools like `hydra`, `ncrack`, and `medusa` can be used for brute-forcing logins. Use `hydra` to perform the attack. You will need to provide a username and a list of passwords to try against. Try the 200 most [common passwords](./common_passwords.txt) of 2023.
 
    >[!NOTE]
    This is actually a modified version of the 200 most common passwords of 2023 from [SecLists](https://github.com/danielmiessler/SecLists/blob/master/Passwords/2023-200_most_used_passwords.txt), since most of the passwords in the original file do not meet the password complexity requirements of Azure VMs.
@@ -56,11 +56,11 @@ Now, use the cracked credentials to SSH into the VM:
 ssh azureuser@<Public_IP>
 ```
 
-🎉 You’ve officially gained access to the VM! Remember, use your powers for good and always wear a white hat. But we’re not done yet—let’s explore further.
+🎉 You’ve officially gained access to the VM! Remember, use your powers for good and always wear a white hat. But you’re not done yet—explore further.
 
 ## Step 4: Explore the Network
 
-There doesn't seem to be anything of use to us on this vm, so let's dig into the network.
+There doesn't seem to be anything of use to you on this vm. Dig into their network to see if you can find anything useful.
 
 ### 4.1: Understanding the VM’s Internal Network
 
@@ -74,7 +74,7 @@ You’ll likely see an internal IP in the 10.0.0.x range (common for Azure VNets
 
 ### 4.2: Discover Other Devices on the Network
 
-We'll scan all devices in the 10.0.0.x range to identify active hosts. Use one of the methods below to send bulk ICMP echo probes (pings).
+Scan all devices in the 10.0.0.x range to identify active hosts. Use one of the methods below to send bulk ICMP echo probes (pings).
 
 **Method 1: Using nmap:**
 ```bash
@@ -113,11 +113,11 @@ arp -a
 
 ## Step 5: Pivot to Another VM
 
-Hopefully you were able to find another vm on the network. Let's try to connect to it.
+Hopefully you were able to find another vm on the network. Try to connect to it.
 
 ### 5.1: Attempt SSH with Existing Credentials
 
-Let's first try to SSH using the same username and password:
+First try to SSH using the same username and password:
 
 ```bash
 ssh azureuser@<Internal_IP>
@@ -125,7 +125,7 @@ ssh azureuser@<Internal_IP>
 
 ### 5.2: Permission Denied? Look for a Private Key
 
-Do you see `Permission denied (publickey)`? Looks like they tried to beef up their security by using SSH keys instead of a password. But since we're already inside the compromised vm, let’s check for an SSH private key.
+Do you see `Permission denied (publickey)`? Looks like they tried to beef up their security by using SSH keys instead of a password. But since you're already inside the compromised vm, let’s check for an SSH private key.
 
 Navigate to the .ssh directory and look for a private key file, such as id_rsa.pem.:
 
@@ -223,6 +223,9 @@ User azureuser may run the following commands on MrMoneyBagsVM:
 ```
 
 This means that you can run `vim` as root without needing to enter a password. This is a common misconfiguration that can lead to privilege escalation.
+
+>[!NOTE]
+**Why This Works**: Text editors like vim, nano, and emacs can execute shell commands, making them dangerous when run with sudo privileges. Other dangerous sudo permissions include compilers, interpreters, and file transfer utilities.
 
 ### 7.2: Use Vim for Privilege Escalation
 
