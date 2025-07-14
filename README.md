@@ -2,13 +2,15 @@
 
 "Be The Hacker" is a series of hands-on labs designed to provide you with insight into how an attacker could exploit improperly secured environments. 
 
-Through a series of scenarios, this lab series aims to teach the common mistakes made during cloud resource setup and demonstrate how they can be exploited by a bad actor.
+Through a series of scenarios, this lab series aims to teach the common mistakes made during cloud resource setup and software configuration, and demonstrate how they can be exploited by a bad actor.
 
-By simulating real-world attacks on vulnerable systems, you'll gain practical experience in securing your own cloud infrastructure and understanding the importance of strong security practices.
+By simulating real-world attacks on vulnerable systems, you'll gain practical experience in securing your own infrastructure and applications, and understand the importance of strong security practices.
 
 # Prerequisites
 
 Before starting these labs, please ensure you have the following:
+
+- **Linux/Unix Environment**: These labs are designed to run on Linux, macOS, or Windows Subsystem for Linux (WSL). The setup scripts and labs use bash and Unix tools.
 
 - **Azure Subscription**: These labs will create resources in your Azure subscription. Make sure you have an active Azure subscription with appropriate permissions to create and manage resources.
 
@@ -39,17 +41,28 @@ You are Mr.Ton, first name Plank, and you aspire to create a popular fast food r
 
 ## Setup Lab
 
-You should first go through the `Lab 01` section in the presentation. After doing so, run the `lab_01_setup` script, but try not to read the script until after completing the lab so you don't ruin the *magic*.
+You should first go through the `Lab 01` section in the presentation. After doing so, run the `lab01_setup.sh` script. 
+
+>[!IMPORTANT]
+The setup script is encoded to retain the challenge of the lab. You should not see how the resources are created.
+>
+>Do not look at the resources created in the Azure portal until **AFTER** you have completed the lab, as it may spoil the challenge.
+>
+>If you are curious, you may decode/read the setup script **AFTER** completing the lab.
 
 ```bash
 cd Lab_01_Compromised_VM
 ./lab01_setup.sh
 ```
 
-### Hard Mode
+## Completing the Lab:
+
+### Option 1: Hard Mode (Recommended)
 
 Go find the secret. Hopefully the powerpoint taught you something. Good luck.
 
-### Guided Mode
+### Option 2: Guided Mode 
 
-Follow these [instructions](./Lab_01_Compromised_VM/guided_mode.md).
+It is recommended to try the hard mode first, but if you get stuck, you can use the guide to help you through the steps.
+
+The full step-by-step guide is available [here](./Lab_01_Compromised_VM/guided_mode.md). 

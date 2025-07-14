@@ -12,15 +12,16 @@
    nmap -sS -Pn <Public_IP>
    ```
 
-    >[!NOTE]
-    **-sS:** Performs a stealthy SYN scan to detect open ports.  
-    **-Pn:** Skip ping sweep
+    >[!TIP]
+    **-sS:** Performs a TCP SYN scan (stealth scan). This sends SYN packets to detect open ports without completing the full TCP handshake, making it faster and less likely to be logged.  
+    >    
+    > **-Pn:** Skip host discovery (ping). This treats the target as online and skips the initial ping test, which is useful when ICMP is blocked by firewalls.
 
 2. **Attempt SSH**:  
     We see that port 22 is open. This is the default port for SSH, so let’s start by trying to SSH into the VM:
 
     ```bash
-    ssh azureuser@<Public_IP>
+    ssh <Public_IP>
     ```
 
     If it prompts for a password, this indicates that the VM is not using a secure authentication method like SSH keys. Let's try to crack the password.
@@ -33,16 +34,19 @@
    - If the machine is hosted on Azure, the default username is often `azureuser`, so let's try using that username first.
 
 2. **Brute Force the Password**:  
-   Tools like `hydra`, `ncrack`, and `medusa` can be used for brute-forcing logins. Let's use `hydra` to perform our attack. We will need to provide a username and a list of passwords to try against. Let's try the 200 most common passwords of 2023 from [SecLists](https://github.com/danielmiessler/SecLists/blob/master/Passwords/2023-200_most_used_passwords.txt):
+   Tools like `hydra`, `ncrack`, and `medusa` can be used for brute-forcing logins. Let's use `hydra` to perform our attack. We will need to provide a username and a list of passwords to try against. Let's try the 200 most [common passwords](./common_passwords.txt) of 2023.
+
+   >[!NOTE]
+   This is actually a modified version of the 200 most common passwords of 2023 from [SecLists](https://github.com/danielmiessler/SecLists/blob/master/Passwords/2023-200_most_used_passwords.txt), since most of the passwords in the original file do not meet the password complexity requirements of Azure VMs.
 
    ```bash
    hydra -l azureuser -P ./common_passwords.txt ssh://<Public_IP>
    ```
 
-    > [!NOTE]
+    > [!TIP]
     **-l azureuser:** Specifies the username to use for the attack.  
-    **-P ./common_passwords.txt:** Points to a file containing a list of common passwords.  
-    **ssh://<Public_IP>:** Specifies the method and IP address.
+    >
+    >**-P ./common_passwords.txt:** Points to a file containing a list of common passwords.  
 
 ## Step 3: Access the VM
 
@@ -77,15 +81,15 @@ We'll scan all devices in the 10.0.0.x range to identify active hosts. Use one o
 nmap -sn 10.0.0.0/24
 ```
 
->[!NOTE]
-**-sn:** Ping scan only (no port scan) to discover live hosts.
+>[!TIP]
+**-sn:** Performs a ping scan (no port scan). This option tells nmap to only discover hosts that are up, without scanning for open ports.
 
 **Method 2: Using fping:**
 ```bash
 fping -g 10.0.0.1 10.0.0.254
 ```
 
->[!NOTE]
+>[!TIP]
 **-g** : Generates a list of IPs in the specified range and pings them.
 
 **Method 3: Use a simple bash loop:**
@@ -208,7 +212,7 @@ You might be able to escalate your privileges using `sudo`. First, check if you 
 sudo -l
 ```
 
->[!NOTE]
+>[!TIP]
 **-l:** Lists the allowed (and forbidden) commands for the current user.
 
 You should see:
@@ -257,7 +261,7 @@ Optionally, you can now try to secure the VM by applying any remediation steps b
 
 ## Remediation
 
-After completing the exercise, feel free to use the vulnerabilities you learned about to secure the vms.
+After completing the exercise, feel free to use the vulnerabilities you learned about to secure the VMs.
 
 Suggestions for improved security include:
 
