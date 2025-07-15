@@ -18,11 +18,16 @@
     > **-Pn:** Skip host discovery (ping). This treats the target as online and skips the initial ping test, which is useful when ICMP is blocked by firewalls.
 
 2. **Attempt SSH**:  
-    You should see that port 22 is open. This is the default port for SSH, so let’s start by trying to SSH into the VM:
+    You should see that port 22 is closed, but port 2222 is open! It looks like they might have changed the ssh port to 2222. Start by trying to SSH into the VM:
 
     ```bash
-    ssh <Public_IP>
+    ssh -p 2222 <Public_IP>
     ```
+
+    >[!TIP]
+    > **-p:** Specifies the port to connect to
+    >
+    > You can try without the `-p` option and see that you get a "Connection refused" error, which indicates that the default SSH port (22) is not open.
 
     If it prompts for a password, this indicates that the VM is not using a secure authentication method like SSH keys. Try to crack the password.
 
@@ -40,7 +45,7 @@
    This is actually a modified version of the 200 most common passwords of 2023 from [SecLists](https://github.com/danielmiessler/SecLists/blob/master/Passwords/2023-200_most_used_passwords.txt), since most of the passwords in the original file do not meet the password complexity requirements of Azure VMs.
 
    ```bash
-   hydra -l azureuser -P ./common_passwords.txt ssh://<Public_IP>
+   hydra -l azureuser -P ./common_passwords.txt ssh://<Public_IP>:2222
    ```
 
     > [!TIP]
@@ -53,7 +58,7 @@
 Now, use the cracked credentials to SSH into the VM:
 
 ```bash
-ssh azureuser@<Public_IP>
+ssh -p 2222 azureuser@<Public_IP>
 ```
 
 🎉 You’ve officially gained access to the VM! Remember, use your powers for good and always wear a white hat. But you’re not done yet—explore further.
