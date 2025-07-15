@@ -36,7 +36,7 @@
 1. **Check Hosting Information**:  
    You can use a site like [hostingchecker.com](https://hostingchecker.com) to determine if the machine is hosted in the cloud.  
 
-   - If the machine is hosted on Azure, the default username is often `azureuser`, so try using that username first.
+   - Since the machine is hosted on Azure, try using `azureuser` as the username. This is the standard username used in the official [docs](https://learn.microsoft.com/en-us/azure/virtual-machines/linux-vm-connect?tabs=Linux).
 
 2. **Brute Force the Password**:  
    Tools like `hydra`, `ncrack`, and `medusa` can be used for brute-forcing logins. Use `hydra` to perform the attack. You will need to provide a username and a list of passwords to try against. Try the 200 most [common passwords](./common_passwords.txt) of 2023.
