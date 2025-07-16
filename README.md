@@ -8,6 +8,14 @@ By simulating real-world attacks on vulnerable systems, you'll gain practical ex
 
 # Prerequisites
 
+## Presentation
+
+Before starting these labs, please go through the accompanying PowerPoint [presentation](https://microsoft-my.sharepoint.com/:p:/p/zackaryafaci/ER5zu7QBPrVHvP54ScLMhGoB-tS4THMKDzGJn1-FT_g0uA?e=0ujWl0). It provides essential context and information that will be helpful as you work through the labs.
+
+Refer back to the presentation as needed while completing the labs.
+
+## Setup
+
 Before starting these labs, please ensure you have the following:
 
 - **Linux/Unix Environment**: These labs are designed to run on Linux, macOS, or Windows Subsystem for Linux (WSL). The setup scripts and labs use bash and Unix tools.
